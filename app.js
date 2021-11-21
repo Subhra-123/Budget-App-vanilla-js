@@ -72,6 +72,13 @@ var budgetController = (function () {
         percentage: data.percentage,
       };
     },
+    deleteItem:(type,id)=>{
+        var arr=data.allItems[type];
+        arr.splice(id,1);
+        data.allItems[type]=arr;
+
+
+    }
   };
 })();
 
@@ -90,7 +97,7 @@ var UIController = (function () {
     addListItem: (obj, type) => {
       var html, newHtml;
       if (type === "inc") {
-        html = `<div class="item clearfix" id="income-%id%">
+        html = `<div class="item clearfix" id="inc-%id%">
                <div class="item__description">%description%</div>
                <div class="right clearfix">
                    <div class="item__value">%value%</div>
@@ -100,11 +107,10 @@ var UIController = (function () {
                </div>
            </div>`;
       } else if (type === "exp") {
-        html = `<div class="item clearfix" id="expense-%id%">
+        html = `<div class="item clearfix" id="exp-%id%">
                <div class="item__description">%description%</div>
                <div class="right clearfix">
                    <div class="item__value">%value%</div>
-                   <div class="item__percentage">21%</div>
                    <div class="item__delete">
                        <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
                    </div>
@@ -150,8 +156,15 @@ var UIController = (function () {
       budget.textContent = data.budget;
       incval.textContent = data.incTotal;
       expval.textContent = data.expTotal;
-      percen.textContent = data.percentage + "%";
+        percen.textContent = data.percentage + "%";
+      
     },
+    deleteItemUI:(type,id)=>{
+        var item=type+'-'+id;
+        var itemdel=document.querySelector('#'+item);
+        console.log(itemdel);
+        itemdel.style.display="none";
+    }
   };
 })();
 
@@ -162,6 +175,7 @@ var controller = (function (budgetCtrl, UICtrl) {
     document.addEventListener("keypess", function (event) {
       if (event.keyCode === 13) ctrlAddItem();
     });
+    document.querySelector('.container').addEventListener('click',cltrDeleteItem);
   };
   var ctrlAddItem = function () {
     var inpdata = UICtrl.getInput();
@@ -175,6 +189,7 @@ var controller = (function (budgetCtrl, UICtrl) {
         inpdata.description,
         inpdata.value
       );
+      
       UICtrl.addListItem(newItem, inpdata.type);
       UICtrl.clearFields();
       budgetCtrl.calculateBudget();
@@ -184,7 +199,33 @@ var controller = (function (budgetCtrl, UICtrl) {
       //update budget in Ui
       UICtrl.updateBudget(budgetData);
     }
+
+    
   };
+  var cltrDeleteItem=(event)=>{
+    var itemId,split,type,Id;
+    itemId=event.target.parentNode.parentNode.parentNode.parentNode.id;
+    
+    if(itemId)
+    {
+        split=itemId.split('-');
+        Id=split[1];
+        type=split[0];
+        //delete from array
+        budgetCtrl.deleteItem(type,Number(Id));
+        //update Ui
+        UICtrl.deleteItemUI(type,Id);
+        
+
+        budgetCtrl.calculateBudget();
+        let budgetData = budgetCtrl.getBudget();
+
+      //update budget in Ui
+      UICtrl.updateBudget(budgetData);
+    }
+
+
+}
 
   return {
     init: () => {
